@@ -24,11 +24,11 @@ var lib = {
 
 var OSCheckNum = 6781;
 
-var OSCountdownClock = function (o) {
+var OSCountdownTimer = function (o) {
 	lib.extend(this, o);
 	this.init();
 };
-OSCountdownClock.prototype = {
+OSCountdownTimer.prototype = {
 	init: function () {
 		var params = this.parseParams(location.search.replace(/^\?/, '').split(/&/)),
 			timeParam = params[this.paramName],
@@ -169,7 +169,7 @@ OSCountdownForm.prototype = {
 };
 
 lib.addEventListener(window, 'load', function () {
-	(new OSCountdownClock({
+	(new OSCountdownTimer({
 		targetClass: 'OSCountdownBanner',
 		paramName: 'OSCountdownEnd',
 		periodNames: {
