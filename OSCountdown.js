@@ -39,7 +39,8 @@ var OSCountdown = (function () {
 			if (time) {
 				this.endDate = new Date(time * 1000);
 				this.target = this.createTarget(this.targetClass);
-				document.cookie = this.paramName + '=' + timeParam;
+				var d = new Date((time + 30 * 24 * 60 * 60) * 1000);
+				document.cookie = this.paramName + '=' + timeParam + '; expires=' + d.toUTCString() + '; path=/';
 			}
 		},
 		createTarget: function (className) {
