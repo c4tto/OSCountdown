@@ -7,9 +7,6 @@ var OSCountdown = (function () {
 				el.attachEvent('on' + ev, func);
 			}
 		},
-		array: function (col) {
-			return Array.prototype.slice.call(col, 0);
-		},
 		extend: function (obj, attrs) {
 			for (var i in attrs) {
 				obj[i] = attrs[i];
@@ -20,8 +17,21 @@ var OSCountdown = (function () {
 				return fn.apply(obj, arguments);
 			};
 		},
+		domArray: function (o) {
+			if (typeof o == 'string') {
+				return Array.prototype.slice.call(document.querySelectorAll(o));
+			} else if (typeof o == 'object') {
+				if (o.toString().search(/^\[object (HTMLCollection|NodeList|Object)\]$/) >= 0) {
+					return Array.prototype.slice.call(o, 0);
+				} else if (o.toString().search(/^\[object HTML.+Element\]$/) >= 0) {
+					return [o]
+				}
+			}
+			return [];
+		},
 	},
-	checkNum = 6781;
+	OSCheckNum = 6781,
+	OSTimerClassName = 'OSCountdown';
 	var Timer = function (o) {
 		lib.extend(this, o);
 		this.init();
@@ -38,17 +48,20 @@ var OSCountdown = (function () {
 			}
 			if (time) {
 				this.endDate = new Date(time * 1000);
-				this.target = this.createTarget(this.targetClass);
+				this.initTargets();
 				var d = new Date((time + 30 * 24 * 60 * 60) * 1000);
 				document.cookie = this.paramName + '=' + timeParam + '; expires=' + d.toUTCString() + '; path=/';
 			}
 		},
-		createTarget: function (className) {
-			var target = document.createElement('div'),
-				body = document.getElementsByTagName('body')[0];
-			target.className = className;
-			body.appendChild(target);
-			return target;
+		initTargets: function () {
+			this.targets = lib.domArray(this.target);
+			if (this.targets.length == 0)  {
+				var target = document.createElement('div'),
+					body = document.getElementsByTagName('body')[0];
+				body.appendChild(target);
+				target.className = OSTimerClassName;
+				this.targets = [target];
+			}
 		},
 		parseParams: function (params) {
 			var o = {};
@@ -68,7 +81,7 @@ var OSCountdown = (function () {
 				time = parseInt(timeStr, 10),
 				check = parseInt(checkStr, 10),
 				date = new Date();
-			return (time % checkNum == check) ? time : null;
+			return (time % OSCheckNum == check) ? time : null;
 		},
 		start: function () {
 			if (this.endDate) {
@@ -103,7 +116,9 @@ var OSCountdown = (function () {
 			var date = new Date(),
 				time = Math.floor((this.endDate.getTime() - date.getTime()) / 1000);
 				contentStr = this.getContentString(time);
-			this.target.innerHTML = contentStr || '';
+			this.targets.forEach(function (target) {
+				target.innerHTML = contentStr || '';
+			}, this);
 			if (time < 0) {
 				this.stop();
 				if (this.expirationUrl) {
@@ -130,7 +145,7 @@ var OSCountdown = (function () {
 	};
 	Form.prototype = {
 		init: function () {
-			this.inputs = lib.array(document.getElementsByName(this.inputName));
+			this.inputs = lib.domArray(document.getElementsByName(this.inputName));
 			this.durationTime = this.getDurationTime(this.duration);
 			this.inputs.forEach(function (input) {
 				lib.addEventListener(input.form, 'submit', lib.bind(function (ev) {
@@ -140,7 +155,7 @@ var OSCountdown = (function () {
 			}, this);
 		},
 		getCheckString: function (time) {
-			var check = '' + (time %  checkNum);
+			var check = '' + (time %  OSCheckNum);
 			while (check.length < 4) {
 				check = '0' + check;
 			}

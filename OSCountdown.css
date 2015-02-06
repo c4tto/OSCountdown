@@ -1,54 +1,57 @@
-.OSCountdownBanner {
+.OSCountdown {
 	font-family: Arial,sans-serif;
+	font-size: 30px;
 	color: #ffffff;
 	position: fixed;
 	bottom: 0;
 	left: 0;
 	right: 0;
 	z-index: 10000;
+	padding: 15px;
+	text-align: center;
 	line-height: normal;
+	overflow: hidden;
+	white-space: nowrap;
 	background-color: #d21d22;
 	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+	text-shadow: 0 2px 2px rgba(0, 0, 0, 0.5);
 	background: -webkit-linear-gradient(#d21d22, #a70c0e);
 	background: -moz-linear-gradient(#d21d22, #a70c0e);
 	background: linear-gradient(#d21d22, #a70c0e);
 }
 
-.OSCountdownBanner > div {
-	font-size: 30px;
-	overflow: hidden;
-	padding: 15px;
-	text-align: center;
-	text-shadow: 0 2px 2px rgba(0, 0, 0, 0.5);
-	white-space: nowrap;
-	position: relative;
+.OSCountdown a {
+	color: inherit;
+	display: block;
+	width: 100%;
+	height: 100%;
 }
 
-.OSCountdownBanner > div > span {
+.OSCountdown span.title {
 	display: inline-block;
 	margin: 0 5px;
 	position: relative;
 	vertical-align: middle;
 }
 
-.OSCountdownBanner > div > div {
+.OSCountdown div.timer {
 	display: inline-block;
 	margin: 0 5px;
 	position: relative;
 	vertical-align: middle;
 }
 
-.OSCountdownBanner > div > div > div {
+.OSCountdown div.timer > div {
 	display: inline-block;
 	margin: 0 4px;
 }
 
-.OSCountdownBanner > div > div > div > span {
+.OSCountdown div.timer span {
 	display: block;
 	margin: 2px 0;
 }
 
-.OSCountdownBanner > div > div > div > span.label {
+.OSCountdown div.timer span.label {
 	font-size: 9px;
 	text-transform: uppercase;
 	background-color: #9c0000;
@@ -57,7 +60,7 @@
 	padding: 2px 5px;
 }
 
-.OSCountdownBanner > div > div > div > span.value {
+.OSCountdown div.timer span.value {
 	color: #000000;
 	font-size: 34px;
 	background-color: #ffffff;
