@@ -32,26 +32,55 @@ var OSCountdown = (function () {
 	},
 	OSCheckNum = 6781,
 	OSTimerClassName = 'OSCountdown';
+
+	var TimeCodec = function () {
+	};
+	TimeCodec.prototype = {
+		encode: function (time) {
+			var check = '' + (time %  OSCheckNum);
+			while (check.length < 4) {
+				check = '0' + check;
+			}
+			return time + check;
+		},
+		decode: function (timeStr) {
+			if (typeof timeStr == 'string') {
+				var valueStr = timeStr.substring(0, timeStr.length -4),
+					checkStr = timeStr.substring(valueStr.length),
+					value = parseInt(valueStr, 10),
+					check = parseInt(checkStr, 10),
+					date = new Date();
+				if (value % OSCheckNum == check) {
+					return value;
+				}
+			}
+			return null;
+		}
+	};
 	var Timer = function (o) {
 		lib.extend(this, o);
 		this.init();
 	};
 	Timer.prototype = {
 		init: function () {
-			var params = this.parseParams(location.search.replace(/^\?/, '').split(/&/)),
-				timeParam = params[this.paramName],
-				time = this.getTime(timeParam);
-			if (time === null) {
-				params = this.parseParams(document.cookie.split(/; */));
-				timeParam = params[this.paramName];
-				time = this.getTime(timeParam);
-			}
+			this.codec = new TimeCodec();
+			var timeParam = this.getTimeParam(),
+				time = this.codec.decode(timeParam);
 			if (time) {
 				this.endDate = new Date(time * 1000);
 				this.initTargets();
 				var d = new Date((time + 30 * 24 * 60 * 60) * 1000);
 				document.cookie = this.paramName + '=' + timeParam + '; expires=' + d.toUTCString() + '; path=/';
 			}
+		},
+		getTimeParam: function () {
+			var params = this.parseParams(location.search.replace(/^\?/, '').split(/&/)),
+				timeParam = params[this.paramName];
+			if (!timeParam) {
+				params = this.parseParams(document.cookie.split(/; */));
+				timeParam = params[this.paramName];
+			}
+			return timeParam;
 		},
 		initTargets: function () {
 			this.targets = lib.domArray(this.target);
@@ -71,17 +100,6 @@ var OSCountdown = (function () {
 				o[param[0]] = param[1];
 			});
 			return o;
-		},
-		getTime: function (timeParam) {
-			if (!timeParam) {
-				return null;
-			}
-			var timeStr = timeParam.substring(0, timeParam.length -4),
-				checkStr = timeParam.substring(timeStr.length),
-				time = parseInt(timeStr, 10),
-				check = parseInt(checkStr, 10),
-				date = new Date();
-			return (time % OSCheckNum == check) ? time : null;
 		},
 		start: function () {
 			if (this.endDate) {
@@ -150,19 +168,13 @@ var OSCountdown = (function () {
 		init: function () {
 			this.inputs = lib.domArray(document.getElementsByName(this.inputName));
 			this.durationTime = this.getDurationTime(this.duration);
+			this.codec = new TimeCodec();
 			this.inputs.forEach(function (input) {
 				lib.addEventListener(input.form, 'submit', lib.bind(function (ev) {
 					var time = Math.floor((new Date()).getTime() / 1000) + this.durationTime;
-					input.value = time + this.getCheckString(time);
+					input.value = this.codec.encode(time);
 				}, this));
 			}, this);
-		},
-		getCheckString: function (time) {
-			var check = '' + (time %  OSCheckNum);
-			while (check.length < 4) {
-				check = '0' + check;
-			}
-			return check;
 		},
 		getDurationTime: function (o) {
 			var durationTime = 0,
