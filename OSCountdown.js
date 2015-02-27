@@ -121,6 +121,9 @@ var OSCountdown = (function () {
 			}, this);
 			if (time < 0) {
 				this.stop();
+				if (typeof this.expirationCallback == 'function') {
+					this.expirationCallback.call(this);
+				}
 				if (this.expirationUrl) {
 					location = this.expirationUrl;
 				}
