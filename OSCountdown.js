@@ -160,7 +160,7 @@ var OSCountdown = (function () {
 			if (time < 0) {
 				this.stop();
 				if (typeof this.expirationCallback == 'function') {
-					this.expirationCallback.call(this);
+					this.expirationCallback.call(this, this.endDate);
 				}
 				if (this.expirationUrl) {
 					location = this.expirationUrl;

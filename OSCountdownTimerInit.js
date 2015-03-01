@@ -16,8 +16,8 @@ OSCountdown.lib.addEventListener(window, 'load', function () {
 							'<div><span class="label">{secondsName}</span><span class="value">{seconds}</span></div>' +
 						'</div>' +
 					'</a>',
-		expirationCallback: function () {
-			this.setEndDate(OSCountdown.lib.getDateByAddingPeriods(new Date(), {
+		expirationCallback: function (endDate) {
+			this.setEndDate(OSCountdown.lib.getDateByAddingPeriods(endDate, {
 				hours: 1,
 				seconds: 0
 			}));
