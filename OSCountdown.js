@@ -31,6 +31,15 @@ var OSCountdown = (function () {
 				}
 				return [];
 			},
+			parseParams: function (params) {
+				var o = {};
+				params.map(function (param) {
+					return param.split(/=/);
+				}).forEach(function (param) {
+					o[param[0]] = param[1];
+				});
+				return o;
+			},
 			encodeDate: function (date) {
 				var time = Math.floor(date.getTime() / 1000),
 					check = '' + (time %  OSCheckNum);
@@ -78,21 +87,28 @@ var OSCountdown = (function () {
 	};
 	Timer.prototype = {
 		init: function () {
-			var timeParam = this.getTimeParam(),
-				date = lib.decodeDate(timeParam);
+			var date = this.getEndDate();
 			if (date) {
-				this.initTargets();
 				this.setEndDate(date);
+				this.initTargets();
 			}
 		},
-		getTimeParam: function () {
-			var params = this.parseParams(location.search.replace(/^\?/, '').split(/&/)),
+		getEndDate: function (paramName) {
+			var params = lib.parseParams(location.search.replace(/^\?/, '').split(/&/)),
 				timeParam = params[this.paramName];
 			if (!timeParam) {
-				params = this.parseParams(document.cookie.split(/; */));
+				params = lib.parseParams(document.cookie.split(/; */));
 				timeParam = params[this.paramName];
 			}
-			return timeParam;
+			return lib.decodeDate(timeParam);
+		},
+		setEndDate: function (date) {
+			this.endDate = date;
+			var timeStr = lib.encodeDate(date),
+				exp = lib.getDateByAddingPeriods(date, {
+					days: 30
+				});
+			document.cookie = this.paramName + '=' + timeStr + '; expires=' + exp.toUTCString() + '; path=/';
 		},
 		initTargets: function () {
 			this.targets = lib.domArray(this.target);
@@ -103,23 +119,6 @@ var OSCountdown = (function () {
 				target.className = OSTimerClassName;
 				this.targets = [target];
 			}
-		},
-		parseParams: function (params) {
-			var o = {};
-			params.map(function (param) {
-				return param.split(/=/);
-			}).forEach(function (param) {
-				o[param[0]] = param[1];
-			});
-			return o;
-		},
-		setEndDate: function (date) {
-			this.endDate = date;
-			var timeStr = lib.encodeDate(date),
-				exp = lib.getDateByAddingPeriods(date, {
-					days: 30
-				});
-			document.cookie = this.paramName + '=' + timeStr + '; expires=' + exp.toUTCString() + '; path=/';
 		},
 		start: function () {
 			if (this.endDate) {
