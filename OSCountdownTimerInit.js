@@ -16,6 +16,12 @@ OSCountdown.lib.addEventListener(window, 'load', function () {
 							'<div><span class="label">{secondsName}</span><span class="value">{seconds}</span></div>' +
 						'</div>' +
 					'</a>',
-		expirationUrl: 'http://statnisprava.cz',
+		expirationCallback: function () {
+			this.setEndDate(OSCountdown.lib.getDateByAddingPeriods(new Date(), {
+				hours: 1,
+				seconds: 0
+			}));
+		},
+		expirationUrl: 'index2.html'
 	})).start();
 });
