@@ -1,7 +1,6 @@
 (function () {
 	var lib = OSCountdown.lib,
-		lastChanceCookieName = 'OSCountdownLastChance',
-		lastChanceCookieValue = 'used';
+		expirationUrl = 'expired.html';
 
 	lib.addEventListener(window, 'load', function () {
 		(new OSCountdown.Timer({
@@ -21,25 +20,7 @@
 								'<div><span class="label">{secondsName}</span><span class="value">{seconds}</span></div>' +
 							'</div>' +
 						'</a>',
-			updateCallback: function (time, endDate) {
-				if (lib.getCookie(lastChanceCookieName) == lastChanceCookieValue) {
-					location = this.expirationUrl;
-				}
-			},
-			expirationCallback: function (endDate) {
-				if (lib.getCookie(lastChanceCookieName) != lastChanceCookieValue) {
-					lib.setCookie(lastChanceCookieName, lastChanceCookieValue, {
-						expires: {
-							days: 30
-						}
-					});
-					this.setEndDate(lib.addToDate(new Date(), {
-						hours: 1,
-						seconds: 0
-					}));
-				}
-			},
-			expirationUrl: 'lastChance.html'
+			expirationUrl: expirationUrl
 		})).start();
 	});
 })();

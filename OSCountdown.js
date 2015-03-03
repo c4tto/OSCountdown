@@ -1,4 +1,5 @@
 var OSCountdown = (function () {
+	'use strict'
 	var OSCheckNum = 6781,
 		OSTimerClassName = 'OSCountdown',
 		lib = {
@@ -60,7 +61,7 @@ var OSCountdown = (function () {
 				}
 				return null;
 			},
-			getDateByAddingPeriods: function (date, periods) {
+			addToDate: function (date, periods) {
 				var p = {},
 					passed = false;
 				['seconds', 'minutes', 'hours', 'days', 'months'].forEach(function (periodId) {
@@ -78,6 +79,32 @@ var OSCountdown = (function () {
 					(typeof p.hours == 'number') ? date.getHours() + p.hours : 0,
 					(typeof p.minutes == 'number') ? date.getMinutes() + p.minutes : 0,
 					(typeof p.seconds == 'number') ? date.getSeconds() + p.seconds : 0);
+			},
+			setCookie: function (key, value, o) {
+				key = key.replace(/[^#$&+\^`|]/g, encodeURIComponent);
+				key = key.replace(/\(/g, '%28').replace(/\)/g, '%29');
+				o = o || {};
+				if (value == null || value == undefined) {
+					o.expires = new Date(0);
+				} else {
+					value = ('' + value).replace(/[^!#$&-+\--:<-\[\]-~]/g, encodeURIComponent);
+				}
+				if ((typeof o.expires == 'object') && !(o.expires instanceof Date)) {
+					o.expires = lib.addToDate(new Date(), o.expires);
+				}
+				o.path = o.path || '/';
+
+				var cookieString = key + '=' + value;
+				cookieString += o.path ? ';path=' + o.path : '';
+				cookieString += o.domain ? ';domain=' + o.domain : '';
+				cookieString += o.expires ? ';expires=' + o.expires.toUTCString() : '';
+				cookieString += o.secure ? ';secure' : '';
+
+				document.cookie = cookieString;
+			},
+			getCookie: function (key) {
+				var cookies = lib.parseParams(document.cookie.split(/; */));
+				return cookies[key];
 			}
 		};
 
@@ -94,21 +121,23 @@ var OSCountdown = (function () {
 			}
 		},
 		getEndDate: function (paramName) {
-			var params = lib.parseParams(location.search.replace(/^\?/, '').split(/&/)),
-				timeParam = params[this.paramName];
-			if (!timeParam) {
-				params = lib.parseParams(document.cookie.split(/; */));
-				timeParam = params[this.paramName];
+			var urlParams = lib.parseParams(location.search.replace(/^\?/, '').split(/&/)),
+				urlDate = lib.decodeDate(urlParams[this.paramName]),
+				cookieDate = lib.decodeDate(lib.getCookie(this.paramName));
+
+			if (urlDate && cookieDate) {
+				return cookieDate.getTime() > urlDate.getTime() ? cookieDate : urlDate;
+			} else {
+				return urlDate || cookieDate;
 			}
-			return lib.decodeDate(timeParam);
 		},
 		setEndDate: function (date) {
-			this.endDate = date;
-			var timeStr = lib.encodeDate(date),
-				exp = lib.getDateByAddingPeriods(date, {
+			this.endDate = date instanceof Date ? date : lib.addToDate(new Date(), date);
+			lib.setCookie(this.paramName, lib.encodeDate(this.endDate), {
+				expires: lib.addToDate(this.endDate, {
 					days: 30
-				});
-			document.cookie = this.paramName + '=' + timeStr + '; expires=' + exp.toUTCString() + '; path=/';
+				})
+			});
 		},
 		initTargets: function () {
 			this.targets = lib.domArray(this.target);
@@ -122,8 +151,8 @@ var OSCountdown = (function () {
 		},
 		start: function () {
 			if (this.endDate) {
-				this.refresh();
-				this.timer = setInterval(lib.bind(this.refresh, this), 1000);
+				this.update();
+				this.timer = setInterval(lib.bind(this.update, this), 1000);
 			}
 		},
 		stop: function () {
@@ -149,14 +178,18 @@ var OSCountdown = (function () {
 				return null;
 			}
 		},
-		refresh: function () {
+		update: function () {
 			var date = new Date(),
-				time = Math.floor((this.endDate.getTime() - date.getTime()) / 1000);
+				time = Math.floor((this.endDate.getTime() - date.getTime()) / 1000),
 				contentStr = this.getContentString(time);
 			this.targets.forEach(function (target) {
 				target.innerHTML = contentStr || '';
 			}, this);
-			if (time < 0) {
+			if (time >= 0) {
+				if (typeof this.updateCallback == 'function') {
+					this.updateCallback.call(this, time, this.endDate);
+				}
+			} else {
 				this.stop();
 				if (typeof this.expirationCallback == 'function') {
 					this.expirationCallback.call(this, this.endDate);
@@ -188,7 +221,7 @@ var OSCountdown = (function () {
 			this.inputs = lib.domArray(document.getElementsByName(this.inputName));
 			this.inputs.forEach(function (input) {
 				lib.addEventListener(input.form, 'submit', lib.bind(function (ev) {
-					var date = lib.getDateByAddingPeriods(new Date(), this.duration);
+					var date = lib.addToDate(new Date(), this.duration);
 					input.value = lib.encodeDate(date);
 				}, this));
 			}, this);
