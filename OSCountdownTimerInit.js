@@ -1,9 +1,8 @@
-(function () {
+OSCountdown.lib.addEventListener(window, 'load', function () {
 	var lib = OSCountdown.lib,
 		lastChanceCookieName = 'OSCountdownLastChance',
 		lastChanceCookieValue = 'used';
 
-	lib.addEventListener(window, 'load', function () {
 		(new OSCountdown.Timer({
 			paramName: 'OSCountdownEnd',
 			periodNames: {
@@ -41,5 +40,4 @@
 			},
 			expirationUrl: 'lastChance.html'
 		})).start();
-	});
-})();
+});
